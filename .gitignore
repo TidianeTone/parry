@@ -1,0 +1,5 @@
+outputs/
+work/
+.impeccable/chrome-tmp*/
+.impeccable/review/
+__pycache__/

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-09-22T16:27:42.372Z",
+        "reason": "user asked for an arcade cabinet look around the screen (lit marquee lamps, glowing verdict text) on 2026-09-22; the glow is the cabinet's neon, not default AI styling"
+      }
+    ]
+  }
+}

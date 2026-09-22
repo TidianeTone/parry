@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parry</title>
+<meta name="description" content="Borne d'entraînement de parade : fenêtres d'Elden Ring et de Street Fighter 6, mesurées à la milliseconde, les yeux sur l'arme.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Chakra+Petch:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="parry.css">
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }</script>
+</head>
+<body>
+<header class="fronton">
+  <h1 class="marque">Parry</h1>
+  <p class="sous">La fenêtre, en millisecondes. Les yeux sur l'arme.</p>
+  <p class="press-start" aria-hidden="true">Press start</p>
+  <button class="aide-btn" id="ouvrir-tuto" data-aide="Rouvre le guide de départ.">? Comment jouer</button>
+</header>
+
+<!-- TUTORIEL -->
+<div id="tuto" class="tuto" hidden>
+  <div class="tuto-boite" role="dialog" aria-labelledby="tuto-titre">
+    <div class="tuto-etape" data-etape="1">
+      <h2 id="tuto-titre">1 · Le principe</h2>
+      <p>Un adversaire arme un coup, puis frappe. Tu as <b>une seule touche</b> : la parade. Elle réussit si l'impact tombe pendant ses frames actives, donc il faut appuyer <b>juste avant</b> que l'arme te touche, dans une fenêtre de quelques dizaines de millisecondes.</p>
+      <p>Regarde <b>l'arme</b>, pas le corps. Elle chauffe pendant la garde ; avec l'aide, elle passe au blanc pile pendant la fenêtre.</p>
+    </div>
+    <div class="tuto-etape" data-etape="2" hidden>
+      <h2>2 · Lab</h2>
+      <p>Une session mesurée : tu choisis le jeu, la parade, un boss ou tous, le nombre de coups. À la fin : réussite, biais (tôt ou tard), dispersion, histogramme. Le relevé de l'accueil trace ta progression.</p>
+      <p>Commence avec l'aide et 10 coups sur le Soldat de Godrick. Puis la même chose sans aide.</p>
+    </div>
+    <div class="tuto-etape" data-etape="3" hidden>
+      <h2>3 · Run</h2>
+      <p>Les boss dans l'ordre, <b>trois vies</b>. Chaque parade enlève un PV au boss, chaque coup pris t'enlève une vie. Boss vaincu = une <b>relique</b> à choisir. Mort = « Continue ? » : une pièce, trois vies, même boss, score gardé, trois pièces max.</p>
+    </div>
+    <div class="tuto-etape" data-etape="4" hidden>
+      <h2>4 · Les verdicts</h2>
+      <ul>
+        <li><b>Perfect</b> : moins d'une frame d'écart. Un second appui dans les 300 ms = <b>Riposte</b>, critique.</li>
+        <li><b>Parry</b> : dans la fenêtre.</li>
+        <li><b>Early / Late</b> : avant ou après la fenêtre. Le coup passe.</li>
+        <li><b>Hit</b> : rien pressé. <b>Baited</b> : tu as pressé pendant une feinte.</li>
+      </ul>
+      <p>Après un coup pris, un <b>replay au quart</b> te montre la fenêtre sur l'arme. Une touche pour le passer.</p>
+    </div>
+    <div class="tuto-etape" data-etape="5" hidden>
+      <h2>5 · Les commandes</h2>
+      <p>Espace ou n'importe quelle touche, n'importe quel bouton de manette (XInput), un tap sur l'écran, ou les deux boutons du pupitre. <b>Échap</b> quitte. Les réglages permettent de compenser la latence de ton matériel en millisecondes et de masquer la règle.</p>
+      <p>Survole n'importe quel bouton pour voir à quoi il sert.</p>
+    </div>
+    <div class="tuto-pied">
+      <span class="tuto-points" id="tuto-points"></span>
+      <button class="btn secondaire" id="tuto-passer">Passer</button>
+      <button class="btn principal" id="tuto-suivant">Suivant</button>
+    </div>
+  </div>
+</div>
+<div id="bulle" class="bulle" hidden></div>
+
+<main>
+
+<!-- ACCUEIL -->
+<section id="accueil" class="ecran">
+  <div class="affiche" aria-hidden="true"><span class="lampe"></span><span class="affiche-texte">1 joueur · parade · frames</span><span class="lampe"></span></div>
+  <div class="modes">
+    <button class="mode" data-mode="lab" data-aide="Une session mesurée : tu choisis le boss et le nombre de coups, on chronomètre chaque parade.">
+      <span class="mode-nom">Lab</span>
+      <span class="mode-texte">Une session, un boss, une parade. Tu appuies, on mesure : réussite, biais tôt/tard, dispersion.</span>
+    </button>
+    <button class="mode" data-mode="run" data-aide="Le mode arcade : les boss à la suite, trois vies, reliques, Continue ?.">
+      <span class="mode-nom">Run</span>
+      <span class="mode-texte">Les boss dans l'ordre, trois vies, une relique entre chaque étage. Tu meurs, tu mets une pièce.</span>
+    </button>
+  </div>
+
+  <div class="deux">
+    <article class="carte">
+      <h2>Hi-scores</h2>
+      <ol id="hiscores" class="hiscores"></ol>
+      <h2 class="h2-suite">Relevé</h2>
+      <svg id="tendance" class="tendance" viewBox="0 0 300 60" preserveAspectRatio="none" aria-label="Taux de réussite des dernières sessions"></svg>
+      <ol id="historique" class="historique"></ol>
+      <p id="meilleure-run" class="note"></p>
+    </article>
+    <article class="carte">
+      <h2>Réglages</h2>
+      <label class="champ">Décalage clavier <span class="unite">ms</span>
+        <input type="number" id="decalageClavier" data-aide="Si ton clavier ajoute du retard (sans fil, etc.), mets sa latence ici : elle est retirée de chaque mesure." step="1" min="-100" max="100" value="0"></label>
+      <label class="champ">Décalage manette <span class="unite">ms</span>
+        <input type="number" id="decalageManette" data-aide="Pareil pour la manette. Une 360 filaire : 0 à 8 ms." step="1" min="-100" max="100" value="0"></label>
+      <label class="champ coche"><input type="checkbox" id="son" checked data-aide="Coupe les tics, le clang de parade et les jingles."> Son</label>
+      <label class="champ champ-curseur"><span>Volume des sons</span><input type="range" id="volume" min="0" max="100" step="5" data-aide="Le volume de tous les effets, voix comprises."><output id="volume-val">70</output></label>
+      <label class="champ coche"><input type="checkbox" id="regle" checked data-aide="La barre sous l'écran qui place ton appui par rapport à la fenêtre (-300 à +300 ms)."> Règle de timing sous l'écran</label>
+      <label class="champ coche"><input type="checkbox" id="replay" checked data-aide="Après un coup pris, rejoue l'attaque au ralenti avec la fenêtre allumée sur l'arme."> Ralenti ×¼ après un coup pris (une touche pour passer)</label>
+      <p class="note">Positif = ton matériel ajoute du retard, on le retire de la mesure. Manette : XInput reconnu, n'importe quel bouton pare.</p>
+      <p class="note" id="manette-etat">Aucune manette détectée.</p>
+      <p class="note">Sons : dépose <code>parry</code>, <code>touche</code>, <code>tic</code>, <code>debut</code>, <code>victoire</code>, <code>mort</code> en .wav/.mp3/.ogg dans <code>sfx/</code> et ils remplacent la synthèse.</p>
+    </article>
+  </div>
+</section>
+
+<!-- CONFIG -->
+<section id="config" class="ecran" hidden>
+  <h2 id="config-titre">Lab</h2>
+  <div class="choix" id="choix-jeu">
+    <button class="pastille" data-jeu="er" data-aide="Parade au bouclier, boss du jeu, coups lents et retardés. Le plus facile pour commencer.">Elden Ring</button>
+    <button class="pastille" data-jeu="ar" data-aide="Le roster maison : hallebarde, marteau, faux, AK-47, feintes et enchaînements partout.">Arcade</button>
+    <button class="pastille" data-jeu="sf" data-aide="Perfect Parry de 2 frames. Très dur : seul le Drive Impact se réagit, le reste se pare sur un read avec les tics.">Street Fighter 6</button>
+  </div>
+  <div class="grille-config">
+    <label class="champ">Parade
+      <select id="parade" data-aide="Startup + frames actives. Plus il y a d'actives, plus la fenêtre est large. Le ≈ signale une valeur non officielle."></select></label>
+    <label class="champ" id="champ-cible">Cible
+      <select id="cible" data-aide="Un boss précis pour apprendre ses coups, ou tous pour t'entraîner à lire n'importe quoi."></select></label>
+    <label class="champ" id="champ-nb">Coups
+      <select id="nb" data-aide="Nombre de coups de la session. 10 pour découvrir, 40 pour une vraie mesure."><option>10</option><option selected>20</option><option>40</option></select></label>
+  </div>
+  <div class="grille-config">
+    <label class="champ coche" id="champ-aide"><input type="checkbox" id="aide" checked data-aide="L'arme passe au blanc pendant la fenêtre. À retirer dès que tu tiens 80 %."> Aide : l'arme chauffe à blanc pendant la fenêtre</label>
+    <label class="champ coche" id="champ-annonce"><input type="checkbox" id="annonce" data-aide="Trois tics à 500 ms, le coup part sur le quatrième temps. Indispensable pour les coups trop rapides pour être vus."> Trois tics avant chaque coup</label>
+    <label class="champ coche" id="champ-freerun"><input type="checkbox" id="freerun" data-aide="Le mode détente : neuf vies au lieu de trois, pour traverser tous les boss et apprendre leurs coups sans pression."> Freerun : neuf vies</label>
+    <label class="champ coche"><input type="checkbox" id="chrono" data-aide="Une barre sous l'écran qui se remplit du départ du coup jusqu'à l'impact, avec la fenêtre de parade marquée dessus. Comme le tout premier prototype."> Barre de temps du coup</label>
+    <label class="champ coche"><input type="checkbox" id="aveugle" data-aide="Le boss disparaît dans le noir, seule l'arme brille. L'exercice de lecture pure."> Aveugle : le boss en silhouette, seule l'arme est éclairée</label>
+  </div>
+  <p class="note" id="config-note"></p>
+  <div class="actions">
+    <button class="btn secondaire" data-aller="accueil">Retour</button>
+    <button class="btn principal" id="entrer" data-aide="C'est parti. READY, FIGHT, et le premier coup arrive.">Entrer</button>
+  </div>
+</section>
+
+<!-- JEU -->
+<section id="jeu" class="ecran" hidden>
+<div class="cabinet">
+  <div class="marquee"><span class="lampe"></span><span class="marquee-titre">Parry</span><span class="lampe"></span></div>
+  <div class="hud">
+    <div class="hud-gauche">
+      <div class="hud-etiquette">1UP</div>
+      <div class="hud-score" id="hud-score">000000</div>
+      <div class="pips vies" id="hud-vies" aria-label="Tes vies"></div>
+    </div>
+    <div class="hud-centre">
+      <div class="boss-nom" id="hud-boss"></div>
+      <div class="pips" id="hud-pv" aria-label="Points de vie du boss"></div>
+      <div class="boss-titre" id="hud-titre"></div>
+    </div>
+    <div class="hud-droite">
+      <div class="hud-etiquette">HI</div>
+      <div class="hud-score" id="hud-hi">000000</div>
+      <div class="compteur" id="hud-compteur"></div>
+    </div>
+  </div>
+  <div class="bezel">
+    <i class="vis v1"></i><i class="vis v2"></i><i class="vis v3"></i><i class="vis v4"></i>
+    <div class="verre">
+      <canvas id="scene"></canvas>
+      <div class="flash" id="flash"></div>
+      <div class="annonce" id="annonce-ecran"></div>
+      <div class="combo" id="combo"></div>
+      <div class="coup-nom" id="coup-nom"></div>
+      <div class="chrono" id="chrono-barre" hidden><div class="chrono-fenetre" id="chrono-fenetre"></div><div class="chrono-curseur" id="chrono-curseur"></div></div>
+      <div class="presentation" id="presentation" hidden><span class="presentation-nom" id="presentation-nom"></span><span class="presentation-ligne" id="presentation-ligne"></span></div>
+      <div class="replay" id="replay-etiquette" hidden><span class="replay-mot">◀◀ Replay</span><span class="replay-vitesse">¼ · appuie pour passer</span></div>
+    </div>
+  </div>
+  <div class="verdict">
+    <div class="verdict-mot" id="verdict-mot">&nbsp;</div>
+    <div class="verdict-ms" id="verdict-ms">&nbsp;</div>
+  </div>
+  <svg id="regle" class="regle" viewBox="0 0 600 44" aria-label="Position de ton appui dans la fenêtre"></svg>
+  <div class="pupitre">
+    <div class="grille-hp"></div>
+    <div class="boutons">
+      <button class="bouton b1" aria-label="Parer" data-aide="Parer. Le bouton prend la forme du bouclier choisi. Les deux boutons font pareil, comme n'importe quelle touche."><span class="bouton-etiquette"></span></button>
+      <button class="bouton b2" aria-label="Parer" data-aide="Parer aussi. Le second appui après un Perfect, c'est la riposte."><span class="bouton-etiquette"></span></button>
+    </div>
+    <div class="fente"><span class="fente-trou"></span><span class="fente-texte">Insert coin</span></div>
+    <div class="grille-hp"></div>
+  </div>
+</div>
+  <p class="note centre">Espace, n'importe quelle touche, n'importe quel bouton de la manette ou du pupitre. Échap pour sortir.</p>
+</section>
+
+<!-- RÉSULTATS LAB -->
+<section id="resultats" class="ecran" hidden>
+  <h2>Session</h2>
+  <p class="sous-titre" id="res-contexte"></p>
+  <div class="tuiles">
+    <div class="tuile"><span class="tuile-val" id="res-score"></span><span class="tuile-nom">score</span></div>
+    <div class="tuile"><span class="tuile-val" id="res-taux"></span><span class="tuile-nom">réussite</span></div>
+    <div class="tuile"><span class="tuile-val" id="res-moyenne"></span><span class="tuile-nom">biais moyen</span></div>
+    <div class="tuile"><span class="tuile-val" id="res-sigma"></span><span class="tuile-nom">dispersion</span></div>
+    <div class="tuile"><span class="tuile-val" id="res-meilleur"></span><span class="tuile-nom">meilleur</span></div>
+  </div>
+  <p id="res-lecture" class="lecture"></p>
+  <svg id="histo" class="histo" viewBox="0 0 600 120" aria-label="Répartition de tes écarts"></svg>
+  <div class="actions">
+    <button class="btn secondaire" data-aller="accueil">Accueil</button>
+    <button class="btn principal" id="encore" data-aide="Même boss, même parade, même réglages : pour comparer deux sessions.">Encore</button>
+  </div>
+</section>
+
+<!-- RELIQUE -->
+<section id="relique" class="ecran" hidden>
+  <h2 id="relique-titre">Boss vaincu</h2>
+  <p class="sous-titre">Choisis une relique.</p>
+  <div class="reliques" id="reliques"></div>
+</section>
+
+<!-- CONTINUE ? -->
+<section id="continue" class="ecran" hidden>
+  <div class="continue">
+    <div class="continue-titre">Continue ?</div>
+    <div class="continue-compte" id="continue-compte">9</div>
+    <p class="sous-titre">Une pièce : trois vies, même boss, score gardé. N'importe quelle touche.</p>
+    <div class="actions centre">
+      <button class="btn secondaire" id="abandonner" data-aide="Arrêter là : la run est enregistrée avec l'étage atteint.">Game over</button>
+      <button class="btn principal" id="continuer" data-aide="Trois vies de plus, même boss avec ses PV actuels, score gardé. Trois pièces par run.">Insert coin</button>
+    </div>
+  </div>
+</section>
+
+<!-- FIN DE RUN -->
+<section id="fin" class="ecran" hidden>
+  <h2 id="fin-titre"></h2>
+  <p class="sous-titre" id="fin-contexte"></p>
+  <div class="tuiles">
+    <div class="tuile"><span class="tuile-val" id="fin-score"></span><span class="tuile-nom">score</span></div>
+    <div class="tuile"><span class="tuile-val" id="fin-etage"></span><span class="tuile-nom">étage</span></div>
+    <div class="tuile"><span class="tuile-val" id="fin-taux"></span><span class="tuile-nom">réussite</span></div>
+    <div class="tuile"><span class="tuile-val" id="fin-moyenne"></span><span class="tuile-nom">biais moyen</span></div>
+    <div class="tuile"><span class="tuile-val petit" id="fin-reliques"></span><span class="tuile-nom">reliques</span></div>
+  </div>
+  <p id="fin-lecture" class="lecture"></p>
+  <div class="actions">
+    <button class="btn secondaire" data-aller="accueil">Accueil</button>
+    <button class="btn principal" id="refaire" data-aide="Repart de l'étage 1 avec le même jeu et la même parade.">Refaire une run</button>
+  </div>
+</section>
+
+</main>
+
+<script src="moteur.js"></script>
+<script src="data.js"></script>
+<script type="module" src="parry.js"></script>
+</body>
+</html>

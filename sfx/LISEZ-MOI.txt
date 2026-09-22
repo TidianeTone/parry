@@ -1,0 +1,14 @@
+Dépose ici tes propres sons, ils remplacent la synthèse au chargement :
+
+  parry.wav     réussite (la batte de Melee, par ex.)
+  touche.wav    coup encaissé
+  tic.wav       un tic du compte à rebours
+  debut.wav     départ d'une attaque
+  victoire.wav  boss vaincu (le trophée, par ex.)
+  mort.wav      K.O.
+  yaaa.wav      le YAAA du meme, joué au K.O. : naturel la première fois, puis pitché au hasard
+                (aigu quand tu gagnes, grave quand tu perds). Le jeu l'imite à la synthèse tant que le fichier manque.
+
+.wav, .mp3 ou .ogg au choix. Rien n'est fourni : ce sont tes fichiers.
+  sigma.wav / sigma2.wav   banques de voix : le jeu y pioche une tranche d'une seconde au hasard,
+                pitchée comme le yaaa. Une seule voix joue à la fois, jamais de superposition.
