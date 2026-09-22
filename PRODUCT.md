@@ -144,3 +144,14 @@ sinon ils sortent en quads noirs (`horsAO`). Soleil hors champ avec **Lensflare*
 rampe). Ombres de nuages : plan en MultiplyBlending à 0,5 m dont la texture glisse. Le panorama sert aussi de carte
 d'environnement (PMREM équirectangulaire) : le ciel se reflète sur le métal. Matériaux **MeshPhysicalMaterial** avec
 clearcoat pour le boss, la sculpture et le joueur (laque). Le boss porte un casque, des pauldrons et des grèves.
+
+## Freerun, barre de temps, publication (23/09/2026)
+
+- **Freerun** (option de Run) : neuf vies au lieu de trois, `run.freerun`. Le reste de la run est identique.
+- **Barre de temps du coup** (option Lab et Run, `partie.chrono`) : sous l'écran, elle se remplit du départ du coup à
+  l'impact, la fenêtre de parade marquée en accent, le curseur blanc ; en feinte la fenêtre est estompée. C'est le
+  retour de la jauge du premier prototype, en horizontal.
+- Accueil : affiche illustrée (le marquee), « Press start » qui clignote, rangs sur les hi-scores, halo en tête de page.
+- Publié sur GitHub Pages : dépôt public `TidianeTone/parry`, site https://tidianetone.github.io/parry/ (branche main,
+  racine). `outputs/`, `work/` et `.impeccable/review/` sont ignorés. Tout est statique, chemins relatifs, three.js
+  depuis jsDelivr : rien à construire, `git push` publie.
