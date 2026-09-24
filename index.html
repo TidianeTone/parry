@@ -2,7 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08060c">
 <title>Parry</title>
 <meta name="description" content="Borne d'entraînement de parade : fenêtres d'Elden Ring et de Street Fighter 6, mesurées à la milliseconde, les yeux sur l'arme.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,6 +19,20 @@
   <p class="press-start" aria-hidden="true">Press start</p>
   <button class="aide-btn" id="ouvrir-tuto" data-aide="Rouvre le guide de départ.">? Comment jouer</button>
 </header>
+
+<!-- AVERTISSEMENT SON : première visite ; le tap débloque aussi l'audio sur iPhone -->
+<div id="avis-son" class="tuto" hidden>
+  <div class="tuto-boite" role="dialog" aria-labelledby="avis-son-titre">
+    <h2 id="avis-son-titre">🔊 Ça fait du bruit</h2>
+    <p>Parry <b>crie</b> : un YAAA à chaque Perfect, une voix à chaque coup pris, des clangs à chaque parade. <b>Casque conseillé</b>, ou baisse le volume avant, surtout en public.</p>
+    <p>Sur iPhone, coupe le <b>mode silencieux</b> (le petit bouton sur le côté), sinon tu n'entendras rien. Le volume se règle ensuite dans les réglages de l'accueil.</p>
+    <div class="tuto-pied">
+      <span class="tuto-points"></span>
+      <button class="btn secondaire" id="avis-muet">Sans le son</button>
+      <button class="btn principal" id="avis-ok">Avec le son</button>
+    </div>
+  </div>
+</div>
 
 <!-- TUTORIEL -->
 <div id="tuto" class="tuto" hidden>
@@ -50,6 +65,7 @@
       <h2>5 · Les commandes</h2>
       <p>Espace ou n'importe quelle touche, n'importe quel bouton de manette (XInput), un tap sur l'écran, ou les deux boutons du pupitre. <b>Échap</b> quitte. Les réglages permettent de compenser la latence de ton matériel en millisecondes et de masquer la règle.</p>
       <p>Survole n'importe quel bouton pour voir à quoi il sert.</p>
+      <p>Sur téléphone : tape n'importe où sur l'écran de jeu pour parer, en paysage de préférence ; ✕ en haut à gauche pour quitter.</p>
     </div>
     <div class="tuto-pied">
       <span class="tuto-points" id="tuto-points"></span>
@@ -135,6 +151,7 @@
 <!-- JEU -->
 <section id="jeu" class="ecran" hidden>
 <div class="cabinet">
+  <p class="tourne" aria-hidden="true">↻ Tourne ton téléphone pour jouer en grand</p>
   <div class="marquee"><span class="lampe"></span><span class="marquee-titre">Parry</span><span class="lampe"></span></div>
   <div class="hud">
     <div class="hud-gauche">
@@ -157,6 +174,7 @@
     <i class="vis v1"></i><i class="vis v2"></i><i class="vis v3"></i><i class="vis v4"></i>
     <div class="verre">
       <canvas id="scene"></canvas>
+      <button class="quitter" id="quitter" aria-label="Quitter la partie">✕</button>
       <div class="flash" id="flash"></div>
       <div class="annonce" id="annonce-ecran"></div>
       <div class="combo" id="combo"></div>

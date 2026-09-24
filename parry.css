@@ -266,6 +266,43 @@ h2 { font-family: var(--chrome); font-weight: 400; font-size: 19px; letter-spaci
   .boss-nom { font-size: 12px; }
   .verdict { height: 44px; }
 }
+/* Téléphone : pendant une partie, l'écran de jeu prend tout l'écran, le meuble s'efface */
+.quitter, .tourne { display: none; }
+.tactile body { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.tactile.en-jeu body { overflow: hidden; }
+.tactile.en-jeu .fronton, .tactile.en-jeu #jeu > .note { display: none; }
+.tactile #jeu:not([hidden]) { position: fixed; inset: 0; z-index: 20; display: flex; background: #06040a;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.tactile #jeu .cabinet { flex: 1; min-height: 0; display: flex; flex-direction: column; border: 0; padding: 0; box-shadow: none; background: #06040a; }
+.tactile #jeu .marquee, .tactile #jeu .vis, .tactile #jeu .fente, .tactile #jeu .grille-hp { display: none; }
+.tactile #jeu .hud { margin: 0; padding: 6px 12px; gap: 8px; }
+.tactile #jeu .hud-score { font-size: 14px; }
+.tactile #jeu .boss-titre, .tactile #jeu .compteur { display: none; }
+.tactile #jeu .bezel { flex: 1; min-height: 0; padding: 0; border: 0; box-shadow: none; background: #000; display: flex; align-items: center; justify-content: center; }
+.tactile #jeu .verre { width: 100%; }
+.tactile .quitter { display: grid; place-items: center; position: absolute; top: 8px; left: 8px; z-index: 3; width: 40px; height: 40px; padding: 0;
+  font: 18px/1 var(--chrome); color: var(--creme); background: #08060caa; border: 2px solid var(--trait); cursor: pointer; }
+.tactile #jeu .replay { top: 56px; }
+.tactile #jeu .verdict { height: 36px; }
+.tactile #jeu .pupitre { margin: 0; padding: 8px 12px 14px; grid-template-columns: auto; justify-content: center; }
+.tactile #jeu .bouton { width: 64px; height: 64px; }
+@media (orientation: landscape) {
+  /* paysage : la scène remplit tout, le verdict passe sur l'image, on pare en tapant l'écran */
+  .tactile #jeu .verre { height: 100%; aspect-ratio: auto; }
+  .tactile #jeu .verdict { position: absolute; left: 0; right: 0; bottom: 14px; z-index: 2; pointer-events: none; text-shadow: 0 0 8px #000, 2px 2px 0 #000; }
+  .tactile #jeu .regle, .tactile #jeu .pupitre { display: none; }
+  .tactile #jeu .hud { position: absolute; top: 0; left: 56px; right: 8px; z-index: 2; pointer-events: none; text-shadow: 0 0 6px #000, 1px 1px 0 #000; }
+  .tactile #jeu .pips i.vide { background: #ffffff33; }
+}
+@media (orientation: portrait) {
+  .tactile #jeu .tourne { display: block; margin: 0; padding: 8px 12px; text-align: center; font: 11px var(--chrome); letter-spacing: .08em; text-transform: uppercase; color: var(--jaune); background: #1b1322; }
+  .tactile #jeu .bezel { flex: 0 0 auto; }
+  .tactile #jeu .verdict { margin-top: 18px; }
+  .tactile #jeu .pupitre { margin-top: auto; padding-bottom: 34px; background-position: center; }
+  .tactile #jeu .boutons { gap: 36px; }
+  .tactile #jeu .bouton { width: 84px; height: 84px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .coin { animation: none; }
   .annonce.claque, .annonce.tient, .annonce.titre, .cabinet.manche .marquee { animation-duration: .01s; }

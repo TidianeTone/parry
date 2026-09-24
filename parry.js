@@ -5,6 +5,8 @@ const { F, fenetre, juger, stats, histogramme, tirerPreavis } = Moteur;
 const { PARADES, JEUX, RELIQUES } = Data;
 const $ = id => document.getElementById(id);
 const CLE = 'parry.v1';
+const TACTILE = matchMedia('(pointer: coarse)').matches;
+document.documentElement.classList.toggle('tactile', TACTILE);
 
 // ---- état persistant ---------------------------------------------------------
 let sauve = { reglages: { decalageClavier: 0, decalageManette: 0, son: true, regle: true, replay: true }, sessions: [], runs: [], hi: {} };
@@ -17,6 +19,7 @@ let ecranCourant = 'accueil';
 function aller(id) {
   ecranCourant = id;
   for (const e of ecrans) e.hidden = e.id !== id;
+  document.documentElement.classList.toggle('en-jeu', id === 'jeu');
   if (id === 'accueil') { rendreHistorique(); document.documentElement.removeAttribute('data-jeu'); }
   window.scrollTo(0, 0);
 }
@@ -353,7 +356,7 @@ function suite(now) {
 window.addEventListener('keydown', e => {
   if (e.repeat) return;
   if (!$('tuto').hidden) { if (e.key === 'Escape') fermerTuto(); return; }
-  if (e.key === 'Escape') { if (ecranCourant === 'jeu' || ecranCourant === 'continue') { annuler(); partie = null; aller('accueil'); } return; }
+  if (e.key === 'Escape') { if (ecranCourant === 'jeu' || ecranCourant === 'continue') quitterPartie(); return; }
   if (ecranCourant === 'continue') { if (e.key !== 'Tab') reprendre(); return; }
   if (ecranCourant !== 'jeu') return;
   if (e.key === 'Tab' || e.key.startsWith('F') && e.key.length > 1 || e.altKey || e.ctrlKey || e.metaKey) return;
@@ -365,6 +368,16 @@ $('scene').addEventListener('pointerdown', e => { audio(); appui(e.timeStamp, 'c
 document.querySelectorAll('.bouton').forEach(b => b.addEventListener('pointerdown', e => { audio(); if (ecranCourant === 'continue') reprendre(); else appui(e.timeStamp, 'clavier'); }));
 document.addEventListener('pointerdown', () => { audio(); chargerTousSfx(); }, { once: true });
 window.addEventListener('keydown', () => { audio(); chargerTousSfx(); }, { once: true });
+
+// Sur téléphone : la partie passe en plein écran, en paysage si le navigateur le permet (pas sur iPhone).
+function pleinEcran() {
+  if (!TACTILE || document.fullscreenElement) return;
+  const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (!req) return;
+  Promise.resolve(req.call(el, { navigationUI: 'hide' })).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {})).catch(() => {});
+}
+function quitterPartie() { annuler(); partie = null; aller('accueil'); if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); }
+$('quitter').addEventListener('click', quitterPartie);
 
 // ---- config ------------------------------------------------------------------
 let config = { mode: 'lab', jeu: 'er' };
@@ -393,7 +406,7 @@ function remplirConfig() {
   }[config.jeu];
 }
 $('entrer').addEventListener('click', () => {
-  audio(); chargerTousSfx();
+  audio(); chargerTousSfx(); pleinEcran();
   const jeu = JEUX[config.jeu];
   const parade = PARADES[config.jeu].find(p => p.id === $('parade').value) || PARADES[config.jeu][0];
   if (config.mode === 'lab') {
@@ -576,7 +589,7 @@ function montrerBulle(el) {
   bulle.style.left = Math.max(16, Math.min(window.innerWidth - w - 16, r.left)) + 'px';
   bulle.style.top = (r.bottom + 8 + bulle.offsetHeight > window.innerHeight ? r.top - bulle.offsetHeight - 8 : r.bottom + 8) + 'px';
 }
-for (const ev of ['mouseenter', 'focus']) document.addEventListener(ev, e => { const el = e.target.closest && e.target.closest('[data-aide]'); if (el) montrerBulle(el); }, true);
+for (const ev of ['mouseenter', 'focus']) document.addEventListener(ev, e => { if (TACTILE) return; const el = e.target.closest && e.target.closest('[data-aide]'); if (el) montrerBulle(el); }, true);
 for (const ev of ['mouseleave', 'blur']) document.addEventListener(ev, e => { if (e.target.closest && e.target.closest('[data-aide]')) bulle.hidden = true; }, true);
 
 let etapeTuto = 1;
@@ -591,13 +604,20 @@ function fermerTuto() { $('tuto').hidden = true; sauve.tutoVu = true; persister(
 $('tuto-suivant').addEventListener('click', () => etapeTuto < 5 ? montrerEtape(etapeTuto + 1) : fermerTuto());
 $('tuto-passer').addEventListener('click', fermerTuto);
 $('ouvrir-tuto').addEventListener('click', ouvrirTuto);
-if (!sauve.tutoVu) ouvrirTuto();
+function fermerAvisSon(avecSon) {
+  $('avis-son').hidden = true; sauve.avisSon = true; sauve.reglages.son = avecSon; $('son').checked = avecSon; persister();
+  audio(); chargerTousSfx(); if (avecSon) son.tic();
+  if (!sauve.tutoVu) ouvrirTuto();
+}
+$('avis-ok').addEventListener('click', () => fermerAvisSon(true));
+$('avis-muet').addEventListener('click', () => fermerAvisSon(false));
+if (!sauve.avisSon) { $('avis-son').hidden = false; $('avis-ok').focus(); } else if (!sauve.tutoVu) ouvrirTuto();
 
 
 // Captures pour la revue design (Chrome headless) : ?capture=accueil|config|jeu|resultats|relique|continue|fin|tuto|bulle|focus[&jeu=sf]
 { const q = new URLSearchParams(location.search), c = q.get('capture');
   if (c) {
-    sauve.tutoVu = true; $('tuto').hidden = true;
+    sauve.tutoVu = true; sauve.avisSon = true; $('tuto').hidden = true; $('avis-son').hidden = true;
     const jeu = JEUX[q.get('jeu') || 'er'], parade = PARADES[jeu.id][0];
     const run = () => { demarrerRun(jeu, parade); annuler(); attaque = { phase: 'fin' }; };
     const faux = () => { partie.jugements = [0, 12, -30, 80, 300, 5, -8, 25, 15, -50, 10, 4].map(e => ({ coup: 'Taille', resultat: Math.abs(e) < 90 ? 'parry' : e > 0 ? 'tard' : 'tot', ecart: e })); };

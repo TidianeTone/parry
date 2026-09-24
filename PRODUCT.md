@@ -195,3 +195,14 @@ concepts de personnages. Revue par un critique « directeur artistique AAA » à
 - Serveur de dev sans cache : `python work/serveur.py 8547` (config `parry`).
 - Coût Higgsfield de la journée : ≈ 4 $ (≈ 45 images Grok à 0,09 $). 3D : quota GPU gratuit Hugging Face,
   environ 2 à 3 générations par jour sans jeton.
+
+## Téléphone (24/09/2026)
+
+Détection par `(pointer: coarse)` (classe `tactile` sur `<html>`). Rendu léger (`LEGER` dans scene3d.js, forçable
+par `?qualite=haute|basse`) : densité ×1,25, sans GTAO ni profondeur de champ, bloom en demi-résolution, ombres
+1024, 11 000 brins d'herbe. Pendant une partie, l'écran de jeu passe en plein écran fixe : en paysage la scène
+remplit tout, HUD et verdict posés sur l'image, on pare en tapant n'importe où ; en portrait, bandeau « tourne ton
+téléphone », gros boutons en bas. Bouton ✕ pour quitter (pas d'Échap au doigt). « Entrer » demande le plein écran et
+le verrouillage en paysage (Android ; l'iPhone ne le permet pas). Pas de bulles d'aide au toucher.
+Avertissement son à la première visite (`sauve.avisSon`) : casque conseillé, mode silencieux de l'iPhone ; le tap
+sur « Avec le son » débloque aussi l'audio. Émulation : `python work/mobile.py <dossier> [paysage] nom="/url"`.

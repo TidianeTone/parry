@@ -234,10 +234,15 @@ function textureLueur() {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
+// Téléphones et tablettes : GPU modeste, écran à forte densité. On garde la lecture de l'arme, on coupe le reste.
+// ?qualite=haute ou ?qualite=basse force un profil.
+const QUALITE = new URLSearchParams(location.search).get('qualite');
+export const LEGER = QUALITE ? QUALITE === 'basse' : matchMedia('(pointer: coarse)').matches;
+
 export function creerScene(canvas, coupNom, flash) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !LEGER, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(LEGER ? 1.25 : 2, window.devicePixelRatio || 1));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = LEGER ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .96;
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2('#8eaee0', .0032);
@@ -254,9 +259,9 @@ export function creerScene(canvas, coupNom, flash) {
   composer.addPass(new RenderPass(scene, camera));
   const gtao = new GTAOPass(scene, camera, 900, 420); gtao.output = GTAOPass.OUTPUT.Default;
   gtao.updateGtaoMaterial({ radius: .35, distanceExponent: 1.2, thickness: .6, scale: 1.2, samples: 12, distanceFallOff: 1 });
-  composer.addPass(gtao);
+  composer.addPass(gtao); gtao.enabled = !LEGER;
   const bokeh = new BokehPass(scene, camera, { focus: 3, aperture: .0005, maxblur: .0016 });
-  composer.addPass(bokeh);
+  composer.addPass(bokeh); bokeh.enabled = !LEGER;
   const bloom = new UnrealBloomPass(new THREE.Vector2(900, 420), .45, .5, .92);
   composer.addPass(bloom);
   const cinema = new ShaderPass({
@@ -300,7 +305,7 @@ export function creerScene(canvas, coupNom, flash) {
   // ---- lumières : l'après-midi du tableau, soleil chaud haut à gauche, ciel bleu en rebond
   const hemi = new THREE.HemisphereLight('#9cc0ff', '#6d8a3c', .36); scene.add(hemi);
   const cle = new THREE.DirectionalLight('#ffe2b8', 3.1); cle.position.set(7, 6.5, -8);
-  cle.castShadow = true; cle.shadow.mapSize.set(2048, 2048); cle.shadow.bias = -.0004; cle.shadow.normalBias = .02;
+  cle.castShadow = true; cle.shadow.mapSize.set(LEGER ? 1024 : 2048, LEGER ? 1024 : 2048); cle.shadow.bias = -.0004; cle.shadow.normalBias = .02;
   Object.assign(cle.shadow.camera, { left: -7, right: 7, top: 7, bottom: -5, near: 1, far: 30 });
   scene.add(cle);
   const flaque = new THREE.SpotLight('#ffcf96', 14, 16, .3, .8, 1.3); flaque.position.set(-1.2, 9, 1.2); flaque.target.position.set(-.8, 0, .6); scene.add(flaque, flaque.target); // la douche chaude sur le boss
@@ -403,7 +408,7 @@ export function creerScene(canvas, coupNom, flash) {
 
 
   // ---- l'herbe haute autour de la dalle : brins effilés qui ondulent, du vert profond au jaune-vert du tableau
-  const NH = 34000, geoBrin = new THREE.PlaneGeometry(.055, .46, 1, 5); geoBrin.translate(0, .23, 0);
+  const NH = LEGER ? 11000 : 34000, geoBrin = new THREE.PlaneGeometry(.055, .46, 1, 5); geoBrin.translate(0, .23, 0);
   { const p = geoBrin.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i) / .42; p.setX(i, p.getX(i) * (1 - y * .9)); p.setZ(i, y * y * .1); } geoBrin.computeVertexNormals(); }
   const matHerbe = new THREE.MeshLambertMaterial({ color: '#ffffff', side: THREE.DoubleSide });
   const uTemps = uSol.uTemps;
@@ -714,7 +719,7 @@ export function creerScene(canvas, coupNom, flash) {
     const w = canvas.clientWidth || 900, h = canvas.clientHeight || Math.round(w * 420 / 900);
     if (canvas.width !== Math.round(w * renderer.getPixelRatio())) {
       renderer.setSize(w, h, false); composer.setSize(w, h);
-      const pr = renderer.getPixelRatio(); rtMasque.setSize(Math.round(w * pr), Math.round(h * pr)); matMasque.uniforms.resolution.value.set(w * pr, h * pr); silhouette.uniforms.texel.value.set(1 / w, 1 / h); bloom.resolution.set(w, h); gtao.setSize(w, h); smaa.setSize(w, h);
+      const pr = renderer.getPixelRatio(); rtMasque.setSize(Math.round(w * pr), Math.round(h * pr)); matMasque.uniforms.resolution.value.set(w * pr, h * pr); silhouette.uniforms.texel.value.set(1 / w, 1 / h); bloom.resolution.set(LEGER ? w / 2 : w, LEGER ? h / 2 : h); gtao.setSize(w, h); smaa.setSize(w, h);
       camera.aspect = w / h; camera.updateProjectionMatrix();
     }
   }
