@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Parry · banc</title>
+<style>html,body{margin:0;background:#000;overflow:hidden}canvas{display:block;width:100vw;height:100vh}#n{display:none}#f{position:fixed;inset:0;pointer-events:none}</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }</script>
+</head><body><canvas id="c"></canvas><div id="n"></div><div id="f"></div>
+<script type="module">
+// Banc d'essai de la scène, sans la borne. ?boss=soldat&jeu=er&anim=taille&arme=epee&t=900&preavis=1200&res=parry&vue=jeu|boss|joueur|large|decor|arme
+// cam=x,y,z,cx,cy,cz impose une caméra libre, fov=degrés change l'objectif (zoom).
+// t fige l'attaque à t ms (sinon elle boucle). window.banc.pret : les modèles sont chargés et au moins une image rendue.
+import { creerScene } from './scene3d.js';
+const q = new URLSearchParams(location.search), $ = id => document.getElementById(id);
+const s = creerScene($('c'), $('n'), $('f')); s.setJeu(q.get('jeu') || 'er');
+const coup = { nom: q.get('anim') || 'taille', anim: q.get('anim') || 'taille', arme: q.get('arme') || undefined };
+const P = +(q.get('preavis') || 1200), tFixe = q.has('t') ? +q.get('t') : null, res = q.get('res') || 'parry';
+const VUES = { boss: [[-.35, 1.65, 1.35], [1.05, 1.3, -.1]], joueur: [[-3.4, 1.8, 2.3], [-1.5, 1.1, .6]], large: [[-7, 4, 7], [4, 1, -4]],
+  decor: [[-2, 2.2, 3], [30, 4, -25]], arme: [[-.2, 1.6, 1.4], [1.0, 1.5, -.3]], dos: [[-4.2, 1.6, 1.8], [0, 1.3, -.2]] };
+for (const n of (q.get('cacher') || '').split(',').filter(Boolean)) [].concat(s.objets[n]).forEach(o => { o.visible = false; o.layers && o.layers.disableAll(); });
+if (VUES[q.get('vue')]) s.vue(...VUES[q.get('vue')]);
+if (q.get('cam')) { const c = q.get('cam').split(',').map(Number); s.vue(c.slice(0, 3), c.slice(3, 6)); }
+if (q.get('fov')) s.objectif(+q.get('fov'));
+let premiere = false, fait = false;
+function boucle(now) {
+  const t = tFixe ?? (now % (P + 1100));
+  const attaque = t < P ? { phase: 'preavis', coup, tDebut: now - t, preavis: P }
+    : { phase: 'resolu', coup, tDebut: now - t, preavis: P, tResolu: now - (t - P), impact: now - (t - P), input: res === 'parry' ? now - (t - P) - 20 : null, jugement: { resultat: res } };
+  if (t < P) fait = false;
+  else if (!fait) { s.declencher(res === 'parry' ? 'parry' : 'touche', now - (t - P), res); fait = true; }
+  else if (tFixe != null) s.recaler(now - (t - P));
+  s.tick(now, { attaque, aide: q.has('aide'), fenetre: { ouvre: P - 160, ferme: P + 40 }, armeRepos: q.get('arme') || 'epee', boss: q.get('boss') || 'soldat' });
+  premiere = true; requestAnimationFrame(boucle);
+}
+requestAnimationFrame(boucle);
+window.banc = { scene: s };
+window.banc.pret = s.pret().then(() => { fait = false; }).then(() => new Promise(r => setTimeout(r, 1500))).then(() => { document.title = 'pret'; });
+</script></body></html>

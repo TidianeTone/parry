@@ -192,10 +192,10 @@ h2 { font-family: var(--chrome); font-weight: 400; font-size: 19px; letter-spaci
 .champ-curseur span { grid-column: 1 / -1; }
 .champ-curseur input[type="range"] { accent-color: var(--accent); width: 100%; }
 .champ-curseur output { font-family: var(--chrome); font-size: 12px; color: var(--creme); min-width: 3ch; text-align: right; }
-.coup-nom { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-family: var(--chrome); font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--gris-clair); pointer-events: none; }
+.coup-nom { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-family: var(--chrome); font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--creme); text-shadow: 0 0 6px #000, 1px 1px 0 #000, -1px 1px 0 #000; pointer-events: none; }
 .replay { position: absolute; top: 14px; left: 18px; display: grid; gap: 4px; font-family: var(--chrome); letter-spacing: .1em; text-transform: uppercase; color: var(--jaune); pointer-events: none; text-shadow: 2px 2px 0 #000; }
 .replay-mot { font-size: 5cqw; animation: clignote 1s steps(2, start) infinite; }
-.replay-vitesse { font-size: 11px; color: var(--creme); }
+.replay-vitesse { font-size: 11px; color: var(--creme); text-shadow: 0 0 6px #000, 1px 1px 0 #000; }
 .verdict-mot.riposte { color: var(--orange); text-shadow: 0 0 22px var(--orange); }
 .combo { position: absolute; top: 12px; right: 16px; font-family: var(--chrome); font-size: 14px; letter-spacing: .06em; color: var(--jaune); text-transform: uppercase; pointer-events: none; }
 .annonce { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--chrome); font-weight: 700; font-size: 7cqw; letter-spacing: .08em; text-transform: uppercase;
@@ -203,7 +203,7 @@ h2 { font-family: var(--chrome); font-weight: 400; font-size: 19px; letter-spaci
 .annonce.claque { animation: claque .7s steps(12) forwards; }
 .annonce.tient { animation: tient 1.1s steps(14) forwards; }
 /* replay : image délavée, cadre qui bat, gros bandeau */
-.verre.en-replay canvas { filter: saturate(.3) sepia(.4) contrast(1.15); }
+.verre.en-replay canvas { filter: saturate(.75) brightness(.95); }
 .verre.en-replay::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 4px var(--jaune), inset 0 0 60px #000; animation: bat-replay .6s steps(2, start) infinite; }
 @keyframes bat-replay { 50% { box-shadow: inset 0 0 0 4px transparent, inset 0 0 60px #000; } }
 .annonce.titre { font-size: 15cqw; letter-spacing: .12em; color: var(--accent); text-shadow: 0 0 40px var(--accent), 0 0 12px #fff, 5px 5px 0 #000; animation: titre 1.1s steps(16) forwards; }

@@ -155,3 +155,43 @@ clearcoat pour le boss, la sculpture et le joueur (laque). Le boss porte un casq
 - Publié sur GitHub Pages : dépôt public `TidianeTone/parry`, site https://tidianetone.github.io/parry/ (branche main,
   racine). `outputs/`, `work/` et `.impeccable/review/` sont ignorés. Tout est statique, chemins relatifs, three.js
   depuis jsDelivr : rien à construire, `git push` publie.
+
+## Refonte graphique (24/09/2026) : le tableau, des vrais personnages
+
+Remplace « Décor : la prairie » et l'anneau de « Lisibilité du coup » (retiré : il masquait l'arme).
+Références : les six images qu'il a envoyées (`work/refs/`), un tableau d'Anato Finnstark pour le décor, cinq
+concepts de personnages. Revue par un critique « directeur artistique AAA » à chaque itération (captures dans
+`outputs/revue/`) : 3,9 → 5,3 → 5,6 → 5,6 → 5,9 → 6,3 → 6,4 → 6,5 → 6,6 → 6,5 → 6,7 → 6,4 → …
+
+- **Personnages** (`modeles/*.glb`, riggés) : concept A-pose de face, de dos et de profil par Grok Imagine 2.0
+  (API Higgsfield, avec ses images en référence), maillage par TRELLIS (joueur, texturé) ou Hunyuan3D 2.1 (forme
+  seule) sur les Spaces Hugging Face, texture projetée face/dos/profil et cuite dans Blender (`work/blender/texturer.py`),
+  squelette nommé comme les articulations du stickman et poids par proximité (`work/blender/rigger.py`).
+  `monterRig` (scene3d.js) traduit les poses du jeu en rotations d'os ; les stickmen restent en secours.
+  Boss par modèle : `MODELE_BOSS` ; disponibles aujourd'hui : conquerant, ombre (masque, dore, sorcier attendent le quota).
+  Capes qui ondulent et liseré de lumière chaude en shader (`habillerMateriau`).
+- **Armes** (`modeles/armes.glb`) : neuf concepts peints (Grok), silhouette détourée puis « gonflée » (l'épaisseur
+  suit la distance au bord : hampes rondes, tranchants fins, `work/gonfler.py`), texture projetée.
+- **Le télégraphe** (la règle « les yeux sur l'arme ») : dès l'armé, le corps de l'arme devient noir mat et une
+  ligne de silhouette fermée, de largeur constante à l'écran, l'entoure dans un liseré noir (masque de l'arme rendu
+  seul sur le calque 1, gonflé d'1 px, puis dilaté par la passe `silhouette` après le bloom). La ligne monte par
+  paliers : braise, orange, or presque blanc ; avec l'aide elle passe au rose et pulse. Estocs et tirs : un éclat à
+  la pointe, et l'arme vise la poitrine pendant l'armé ; à l'impact, la lame se couche sur le bouclier.
+- **Décor** (`modeles/volumes.glb`, `art/decor/`) : statues colossales (125 m, à 200 m, enfouies dans l'éboulis),
+  falaise, arbres, rochers, fleurs, tous gonflés de la même façon ; ciel peint rendu raccordable sur un dôme
+  (zénith fondu) ; terrain de 800 m avec vallée ; carte peinte au sol (chemin ocre) ; bouclier peint.
+- **Caméra** : plus latérale et plus haute (cadrage Souls, silhouette du joueur en bas à gauche) ; les armes
+  longues reculent la caméra et ouvrent le champ (réglé par arme, sans pompage pendant l'attaque). Garde de repos
+  lame levée, le boss respire.
+- **Lumière** : soleil bas derrière le boss (contre-jour), flaque chaude sur l'arène, ombre de nuage sur le plan
+  moyen, brume lavande sur les statues ; bas de l'image assombri. Le bouclier montre sa face peinte de trois quarts.
+- **Arène** : clairière de dalles irrégulières et sceau soleil-croissant au centre (les couronnes des deux statues),
+  bord rongé par l'herbe, ombres de contact sous les personnages.
+- **Coups** : parry = hit-stop 90 ms, étincelles en traits qui retombent dans le sens de la lame, éclat doré bref,
+  soleil du bouclier qui s'allume, boss renvoyé ; trop tard = la lame va au corps, vignette cramoisie ; trop tôt =
+  garde brisée (bouclier projeté), vignette indigo, gerbe gris-bleu, le boss s'emporte dans le vide.
+- **Banc d'essai** : `banc.html?t=…&boss=…&anim=…&arme=…&vue=…|cam=…&fov=…` (scène seule, attaque figée) ;
+  captures GPU par `python work/capturer.py <dossier> nom="requête" …` (Chrome headless + CDP).
+- Serveur de dev sans cache : `python work/serveur.py 8547` (config `parry`).
+- Coût Higgsfield de la journée : ≈ 4 $ (≈ 45 images Grok à 0,09 $). 3D : quota GPU gratuit Hugging Face,
+  environ 2 à 3 générations par jour sans jeton.

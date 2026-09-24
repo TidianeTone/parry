@@ -194,7 +194,7 @@ function resoudre(now) {
   partie.jugements.push(Object.assign({ coup: a.coup.nom }, a.jugement));
   const ok = a.jugement.resultat === 'parry';
   const perfect = ok && Math.abs(a.jugement.ecart) < F;
-  scene.declencher(ok ? 'parry' : 'touche', now);
+  scene.declencher(ok ? 'parry' : 'touche', now, attaque.jugement && attaque.jugement.resultat);
   ok ? son.parry() : son.touche();
   if (perfect) plusTard(() => yaaa(true), 120); else if (!ok) plusTard(() => yaaa(false), 200);
   // score arcade : 100 par parade, 300 si parfaite, multiplié par le combo (jusqu'à x8)
@@ -333,7 +333,7 @@ function boucle() {
     }
     rendreChrono(t, a);
     scene.tick(t, { attaque: a, aide, fenetre: a.preavis ? fenetre(a.preavis, partie.parade, partie.run ? partie.run.bonusFrames : 0) : null,
-      armeRepos: partie.boss ? partie.boss.arme : partie.pool[0].arme });
+      armeRepos: partie.boss ? partie.boss.arme : partie.pool[0].arme, boss: partie.boss && partie.boss.id });
   }
   if (!window.__fige) requestAnimationFrame(boucle);
 }
@@ -608,7 +608,7 @@ if (!sauve.tutoVu) ouvrirTuto();
       fin: () => { run(); faux(); partie.score = 12300; finRun(true); },
       tuto: () => { aller('accueil'); ouvrirTuto(); }, bulle: () => { aller('accueil'); montrerBulle(document.querySelector('[data-aide]')); },
       focus: () => { aller('config'); document.querySelector('.pastille').focus(); } })[c]();
-    setTimeout(() => { annuler(); window.__fige = true; }, 2500); // fige la boucle pour que le temps virtuel de Chrome headless se termine
+    if (!q.has('vivant')) setTimeout(() => { annuler(); window.__fige = true; }, 2500); // fige la boucle pour que le temps virtuel de Chrome headless se termine
   } }
 window.Parry = { etat: () => ({ partie, attaque }), yaaa }; // pour le débogage
 rendreHistorique();
